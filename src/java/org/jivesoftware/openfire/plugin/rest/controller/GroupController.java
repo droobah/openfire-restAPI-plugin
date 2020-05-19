@@ -14,6 +14,7 @@ import org.jivesoftware.openfire.plugin.rest.entity.GroupEntity;
 import org.jivesoftware.openfire.plugin.rest.exceptions.ExceptionType;
 import org.jivesoftware.openfire.plugin.rest.exceptions.ServiceException;
 import org.jivesoftware.openfire.plugin.rest.utils.MUCRoomUtils;
+import org.xmpp.packet.JID;
 
 /**
  * The Class GroupController.
@@ -100,6 +101,48 @@ public class GroupController {
         } else {
             throw new ServiceException("Could not create new group", "groups",
                     ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+        }
+        return group;
+    }
+
+    /**
+     * Set members.
+     *
+     * @param groupName the group name
+     * @param groupEntity the group entity
+     * @return the group
+     * @throws ServiceException the service exception
+     */
+    public Group setGroupMembers(String groupName, GroupEntity groupEntity) throws ServiceException {
+        Group group;
+        if (groupEntity != null && !groupEntity.getName().isEmpty()) {
+            if (groupName.equals(groupEntity.getName())) {
+                try {
+                    group = GroupManager.getInstance().getGroup(groupName);
+
+                    /* Remove users not in list */
+                    for (JID jid : group.getMembers()) {
+                        if (!groupEntity.getMembers().contains(jid.toBareJID())) {
+                            group.getMembers().remove(jid);
+                        }
+                    }
+
+                    /* Add all members in list */
+                    for (String jidString : groupEntity.getMembers()) {
+                        group.getMembers().add(new JID(jidString));
+                    }
+                } catch (GroupNotFoundException e) {
+                    throw new ServiceException("Could not find group", groupName, ExceptionType.GROUP_NOT_FOUND,
+                        Response.Status.NOT_FOUND, e);
+                }
+            } else {
+                throw new ServiceException(
+                    "Could not set members on the group. The group name is different to the payload group name.", groupName + " != " + groupEntity.getName(),
+                    ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
+            }
+        } else {
+            throw new ServiceException("Could not set members on group", "groups",
+                ExceptionType.ILLEGAL_ARGUMENT_EXCEPTION, Response.Status.BAD_REQUEST);
         }
         return group;
     }

@@ -44,6 +44,13 @@ public class GroupService {
     public GroupEntity getGroup(@PathParam("groupName") String groupName) throws ServiceException {
         return groupController.getGroup(groupName);
     }
+
+    @POST
+    @Path("/{groupName}")
+    public Response setGroupMembers(@PathParam("groupName") String groupName, GroupEntity groupEntity) throws ServiceException {
+        groupController.setGroupMembers(groupName, groupEntity);
+        return Response.status(Response.Status.OK).build();
+    }
     
     @PUT
     @Path("/{groupName}")
