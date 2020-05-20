@@ -120,6 +120,11 @@ public class GroupController {
                 try {
                     group = GroupManager.getInstance().getGroup(groupName);
 
+                    /* if no member list was passed, add blank and remove all members */
+                    if (groupEntity.getMembers() == null) {
+                        groupEntity.setMembers(new ArrayList<String>());
+                    }
+
                     /* Remove users not in list */
                     for (JID jid : group.getMembers()) {
                         if (!groupEntity.getMembers().contains(jid.toBareJID())) {
